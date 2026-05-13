@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: pag-postgres
+    environment:
+      POSTGRES_DB: pag_system
+      POSTGRES_USER: pag_user
+      POSTGRES_PASSWORD: pag_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: pag-influxdb
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: pag_admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: pag_password_123
+      DOCKER_INFLUXDB_INIT_ORG: pag-org
+      DOCKER_INFLUXDB_INIT_BUCKET: pag-timeseries
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: your-influxdb-token
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pag-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@pag.gov.bd
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  influxdb_data:
